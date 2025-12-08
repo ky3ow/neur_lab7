@@ -1,0 +1,9 @@
+[project]
+name = "lab7"
+version = "0.1.0"
+dependencies = [
+	"streamlit",
+	"transformers",
+	"huggingface_hub",
+	"pillow",
+]
