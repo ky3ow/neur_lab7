@@ -1,5 +1,4 @@
 import os
-import base64
 from huggingface_hub import InferenceClient, HfApi
 
 client = InferenceClient(
@@ -10,12 +9,17 @@ api = HfApi(token=os.environ["HF_WRITE"])
 
 repo_id = "ky3ow/lab7-images"
 
-info = api.upload_file(
-    path_or_fileobj=os.path.expanduser("~/Documents/ai/cat"),
-    path_in_repo="cat.avif",
-    repo_id=repo_id,
-    repo_type="dataset",
-)
+def upload_image(path: str) -> str:
+    filename = os.path.basename(path)
+    api.upload_file(
+        path_or_fileobj=path,
+        path_in_repo=filename,
+        repo_id=repo_id,
+        repo_type="dataset")
+
+    return f"https://huggingface.co/datasets/{repo_id}/resolve/main/{filename}"
+
+url = upload_image(os.path.expanduser("~/Documents/ai/cat"))
 
 completion = client.chat.completions.create(
     model="zai-org/GLM-4.1V-9B-Thinking",
@@ -30,7 +34,7 @@ completion = client.chat.completions.create(
                 {
                     "type": "image_url",
                     "image_url": {
-                        "url": "https://huggingface.co/datasets/ky3ow/lab7-images/resolve/main/cat.avif"
+                        "url": url
                     },
                 }
             ]
