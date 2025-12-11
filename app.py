@@ -397,20 +397,6 @@ with colL:
                     img_url = to_public_url(img_path)
                     result = run_vqa_with_rag(img_url, img_path, vqa_prompt.strip())
                     st.session_state.last_answer = result or "(empty)"
-
-                    # Append compact Q&A to RAG and persist
-                    if result:
-                        qa_text = f"Q: {vqa_prompt.strip()}\nA: {result.strip()}"
-                        add_doc(qa_text, {"type": "qa", "image_path": img_path})
-                        _rebuild_matrix()
-                        rec = {
-                            "text": qa_text,
-                            "meta": {"type": "qa", "image_path": img_path},
-                        }
-                        try:
-                            append_jsonl_line(rec)
-                        except Exception as e:
-                            st.warning(f"Could not persist QA: {e}")
                 except Exception as e:
                     st.session_state.last_answer = None
                     st.error(f"VQA failed: {e}")
