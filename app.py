@@ -46,12 +46,12 @@ def display_model_output(raw_text: str, title: str = "Model Output"):
     # Show raw/think in collapsible sections
     with st.expander("Reasoning trace (<think>)", expanded=False):
         if think:
-            st.code(think, language="text")
+            st.write(think)
         else:
             st.caption("No reasoning trace found.")
 
     with st.expander("Raw response", expanded=False):
-        st.code(raw_text, language="text")
+        st.write(raw_text)
 
 # --- Helpers (core) ---
 def upload_image_file(file) -> str:
