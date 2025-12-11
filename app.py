@@ -1,5 +1,6 @@
 import os
 import io
+import re
 import json
 from typing import List, Optional
 import numpy as np
@@ -19,6 +20,38 @@ api = HfApi(token=HF_TOKEN)
 EMBED_MODEL = "sentence-transformers/all-MiniLM-L6-v2"  # small, efficient
 RAG_STORE_FILE = "rag_store.jsonl"  # JSONL persisted in HF dataset
 TOP_K = 5  # number of retrieved snippets to include in prompt
+
+def parse_model_output(text: str):
+    think = ""
+    answer = text
+    # Try to extract <think>...</think>
+    m_think = re.search(r"<think>(.*?)</think>", text, flags=re.S)
+    if m_think:
+        think = m_think.group(1).strip()
+    # Try to extract <answer>
+    m_answer = re.search(r"<answer>(.*)", text, flags=re.S)
+    if m_answer:
+        answer = m_answer.group(1).strip()
+    # Remove any custom box tokens your model added
+    answer = answer.replace("<|begin_of_box|>", "").replace("<|end_of_box|>", "")
+    return think, answer
+
+def display_model_output(raw_text: str, title: str = "Model Output"):
+    think, answer = parse_model_output(raw_text)
+
+    # Primary answer section
+    st.subheader(title)
+    st.success(answer)
+
+    # Show raw/think in collapsible sections
+    with st.expander("Reasoning trace (<think>)", expanded=False):
+        if think:
+            st.code(think, language="text")
+        else:
+            st.caption("No reasoning trace found.")
+
+    with st.expander("Raw response", expanded=False):
+        st.code(raw_text, language="text")
 
 # --- Helpers (core) ---
 def upload_image_file(file) -> str:
@@ -383,8 +416,7 @@ with colL:
                     st.error(f"VQA failed: {e}")
 
     if st.session_state.last_answer is not None:
-        st.markdown("Model Output:")
-        st.write(st.session_state.last_answer)
+        display_model_output(st.session_state.last_answer, title="Model Output")
 
 with colR:
     if st.session_state.selected_path:
